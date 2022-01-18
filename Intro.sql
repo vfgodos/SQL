@@ -10,4 +10,8 @@ SELECT name FROM language;
 -- Question number 5
 SELECT COUNT(store_id) AS NumberOfStores FROM store;
 SELECT COUNT(staff_id) AS NumberOfEmployees FROM staff;
-SELECT first_name FROM staff;
+SELECT first_name AS Name FROM staff;
+-- Extra
+SELECT title, name AS idiom
+FROM film F, language L 
+WHERE F.language_id = L.language_id
