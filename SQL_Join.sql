@@ -99,11 +99,6 @@ GROUP BY f.film_id
 ORDER BY Times_Rented DESC;
 
 -- Question 5
-select * from payment; -- amount rental_id
-select * from rental; -- rental_id inventory_id
-select * from inventory; -- inventory_id film_id
-select * from film_category; -- film_id
-
 SELECT fc.category_id, SUM(p.amount) AS 'Revenue'
 FROM sakila.payment p
 JOIN sakila.rental r
@@ -116,14 +111,8 @@ GROUP BY fc.category_id
 ORDER BY Revenue DESC
 LIMIT 5;
 
--- Question 6: I've done it in 2 querys, first I'll count the available copies in Store 1
-SELECT COUNT(i.inventory_id) AS 'Available_Copies'
-FROM sakila.inventory i
-JOIN sakila.film f
-USING (film_id)
-WHERE I.store_id = 1 AND f.title = 'ACADEMY DINOSAUR';
--- Then I check how many are available
-SELECT COUNT(i.inventory_id)
+-- Question 6
+SELECT COUNT(DISTINCT i.inventory_id) AS 'Available_Store1'
 FROM sakila.inventory i
 JOIN sakila.film f
 USING (film_id)
@@ -147,5 +136,27 @@ WHERE a1.actor_id < a2.actor_id -- To avoid repetition
 GROUP BY a1.actor_id
 ORDER BY f.film_id;
 
--- Still working on questions 8 & 9
+-- Question 8
+select r1.customer_id AS Customer1, r2.customer_id AS Customer2, COUNT(DISTINCT r1.inventory_id) AS N_Times
+FROM sakila.rental r1
+JOIN sakila.rental r2
+ON r1.inventory_id = r2.inventory_id AND r1.customer_id < r2.customer_id
+GROUP BY r1.customer_id, r2.customer_id
+HAVING N_Times >= 3
+ORDER BY N_Times DESC;
 
+-- Question 9 with Erin's help
+SELECT * FROM sakila.film;
+SELECT d.film_id, d.actor_id, CONCAT(a.first_name, ' ', a.last_name) AS 'Actor', appearances
+FROM 
+	(SELECT fa.film_id, fa.actor_id, appearances, ROW_NUMBER() OVER (PARTITION BY fa.film_id ORDER BY appearances DESC) AS row_num
+    FROM sakila.film_actor fa
+    INNER JOIN 
+		(SELECT fa.actor_id, COUNT(*) AS appearances
+        FROM sakila.film_actor fa
+        GROUP BY fa.actor_id
+        ORDER BY appearances DESC) app
+        ON app.actor_id = fa.actor_id) d
+INNER JOIN sakila.actor a
+ON d.actor_id = a.actor_id
+WHERE d.row_num = 1;
